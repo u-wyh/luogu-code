@@ -44,7 +44,7 @@ int main()
     }
     sort(nums+1,nums+n+1);
 
-    f[1]=0;
+    f[1]=-1;
     int pos=nums[1],v=0;
     for(int i=2;i<=n;i++){
         if(nums[i]<=pos+v){
@@ -58,7 +58,7 @@ int main()
         // cout<<f[i]<<' ';
     }
 
-    g[n]=0;
+    g[n]=-1;
     pos=nums[n],v=0;
     for(int i=n-1;i>=1;i--){
         if(nums[i]>=pos-v){
