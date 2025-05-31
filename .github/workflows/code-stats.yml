@@ -1,0 +1,27 @@
+name: Code Statistics
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    # 使用更可靠的替代方案
+    - name: Install cloc
+      run: sudo apt-get install -y cloc
+      
+    - name: Run cloc
+      run: |
+        cloc . \
+          --exclude-dir=node_modules,.git,dist,venv,build \
+          --report-file=cloc.txt
+        
+    - name: Upload results
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-report
+        path: cloc.txt
