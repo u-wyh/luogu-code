@@ -1,0 +1,45 @@
+name: Code Line Counter
+
+on:
+  workflow_dispatch:   # 允许手动触发
+  schedule:
+    - cron: '0 0 * * 0'  # 每周日自动运行（可选）
+
+jobs:
+  count-lines:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Run cloc
+      id: cloc
+      uses: himangshuj/gh-action-cloc@v1
+      with:
+        args: |
+          --exclude-dir=node_modules,.git,dist,build,venv  # 排除目录
+          --exclude-ext=log,lock,md,json                   # 排除扩展名
+          
+    - name: Create report
+      run: |
+        echo "📊 代码统计报告 ($(date +'%Y-%m-%d'))" > cloc-report.md
+        echo "==================================" >> cloc-report.md
+        echo "语言 | 文件数 | 空行 | 注释 | 代码" >> cloc-report.md
+        echo "---|---|---|---|---" >> cloc-report.md
+        cat cloc.txt | tail -n +3 | head -n -2 | while read line; do
+          echo $line | awk '{print $1 " | " $2 " | " $3 " | " $4 " | " $5}' >> cloc-report.md
+        done
+        
+        echo "\n### 汇总统计" >> cloc-report.md
+        cat cloc.txt | tail -1 | awk '{print "总文件数: **" $2 "**<br>总代码行: **" $5 "**"}' >> cloc-report.md
+        
+        echo "\n🕒 统计时间: $(date)" >> cloc-report.md
+        
+    - name: Upload report
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-stats
+        path: |
+          cloc.txt
+          cloc-report.md
