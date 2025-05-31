@@ -1,0 +1,23 @@
+name: Code Statistics
+
+on: 
+  workflow_dispatch:  # 只保留手动触发
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Count lines
+      uses: wearerequired/cloc-action@v1
+      with:
+        # 更稳定的替代方案
+        args: --exclude-dir=node_modules,.git,dist
+      
+    - name: Upload results
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-report
+        path: cloc.txt
