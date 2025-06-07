@@ -10,105 +10,109 @@ LL s;
 int a[N][N];
 LL l[N];
 
-unordered_map<LL, int> Map;
-
 int main() {
-	scanf("%d%d", &n, &m);
+    scanf("%d%d", &n, &m);
 
-	LL sum = 0;
-	for(int i = 1; i <= n; i++) {
-		for(int j = 1; j <= m; j++) {
-			scanf("%d", &a[i][j]);
-			sum += a[i][j];
-		}
-	}
-	scanf("%lld", &s);
+    LL sum = 0;
+    for(int i = 1; i <= n; i++) {
+        for(int j = 1; j <= m; j++) {
+            scanf("%d", &a[i][j]);
+            sum += a[i][j];
+        }
+    }
+    scanf("%lld", &s);
 
-	if(sum == s) {
-		puts("YES");
-		printf("0");
-		return 0;
-	}
-	
-	int t1 = 0, t2 = 0, t3 = 0, res = 0;
-	for(int i = 0; i < (1 << n); i++) { // ĞĞµÄÉ¾³ıÇé¿ö
-		int re = n;
-		for(int j = 1; j <= n; j++) {
-			if((i >> j - 1) & 1) {
-				re--;
-			}
-		}
-		for(int j = 1; j <= m; j++) {
-			l[j] = 0;
-			for(int k = 1; k <= n; k++) {
-				if((i >> k - 1) & 1) {
-					l[j] += a[k][j];
-				}
-			}
-		}
-		Map.clear();
-		for(int j = 0; j < (1 << (m >> 1)); j++) { // Ç°Ò»°ëÁĞµÄÉ¾³ıÇé¿ö
-			LL t = 0;
-			for(register int k = 1; k <= (m >> 1); k++) {
-				if((j >> k - 1) & 1) {
-					t += l[k];
-				}
-			}
-			Map[t] = j;
-		}
-		for(int j = 0; j < (1 << m - (m >> 1)); j++) { // ºóÒ»°ëÁĞµÄÉ¾³ıÇé¿ö
-			LL t = 0;
-			for(int k = 1; k <= m - (m >> 1); k++) {
-				if((j >> k - 1) & 1) {
-					t += l[m / 2 + k];
-				}
-			}
-			if(Map.count(s - t)) {
-				t1 = Map[s - t];
-				t2 = j;
-				t3 = i;
-				goto end; // ²»ÓÃÕÒ×îÓÅ½âÀ²£¬Ëæ±ãÒ»¸ö¾Í¿ÉÒÔ
-			}
-		}
-	}
+    if(sum == s) {
+        puts("YES");
+        printf("0");
+        return 0;
+    }
+    
+    const int totalRows = n;
+    const int totalCols = m;
+    const int halfCols = totalCols / 2;
+    const int secHalfCols = totalCols - halfCols;
+    
+    int t1 = 0, t2 = 0, t3 = 0;
+    bool found = false;
+    
+    for(int i = 0; i < (1 << totalRows); i++) {
+        // è®¡ç®—æ¯åˆ—åœ¨ä¿ç•™è¡Œä¸‹çš„å’Œï¼ˆè¡Œä¼˜å…ˆé¡ºåºï¼‰
+        for(int j = 1; j <= totalCols; j++) l[j] = 0;
+        for(int k = 1; k <= totalRows; k++) {
+            if(i >> (k-1) & 1) {
+                for(int j = 1; j <= totalCols; j++) {
+                    l[j] += a[k][j];
+                }
+            }
+        }
+        
+        unordered_map<LL, int> Map;
+        Map.reserve(1 << halfCols);  // é¢„åˆ†é…ç©ºé—´
+        
+        // å‰åŠéƒ¨åˆ†åˆ—
+        for(int j = 0; j < (1 << halfCols); j++) {
+            LL t = 0;
+            for(int k = 0; k < halfCols; k++) {
+                t += ((j >> k) & 1) * l[k+1];
+            }
+            Map[t] = j;
+        }
+        
+        // ååŠéƒ¨åˆ†åˆ—
+        for(int j = 0; j < (1 << secHalfCols); j++) {
+            LL t = 0;
+            for(int k = 0; k < secHalfCols; k++) {
+                t += ((j >> k) & 1) * l[halfCols + k + 1];
+            }
+            
+            if(Map.find(s - t) != Map.end()) {
+                t1 = Map[s - t];
+                t2 = j;
+                t3 = i;
+                found = true;
+                goto end;
+            }
+        }
+    }
 
-	puts("NO");
-	return 0;
-	
-	end:;
-	puts("YES");
-	int cnt = 0; // É¾³ıµÄÊıÁ¿
-	for(int i = 1; i <= n; i++) {
-		if(!((t3 >> i - 1) & 1)) {
-			cnt++;
-		}
-	}
-	for(int i = 1; i <= (m >> 1); i++) {
-		if(!((t1 >> i - 1) & 1)) {
-			cnt++;
-		}
-	}
-	for(int i = 1; i <= m - (m >> 1); i++) {
-		if(!((t2 >> i - 1) & 1)) {
-			cnt++;
-		}
-	}
-	printf("%d\n", cnt);
-	for(int i = 1; i <= n; i++) {
-		if(!((t3 >> i - 1) & 1)) {
-			printf("1 %d\n", i);
-		}
-	}
-	for(int i = 1; i <= (m >> 1); i++) {
-		if(!((t1 >> i - 1) & 1)) {
-			printf("2 %d\n", i);
-		}
-	}
-	for(int i = 1; i <= m - (m >> 1); i++) {
-		if(!((t2 >> i - 1) & 1)) {
-			printf("2 %d\n", m / 2 + i);
-		}
-	}
-	
-	return 0;
+    puts("NO");
+    return 0;
+    
+end:
+    if (!found) {
+        puts("NO");
+        return 0;
+    }
+    
+    puts("YES");
+    int cnt = 0;
+    for(int i = 1; i <= totalRows; i++) {
+        if(!((t3 >> (i-1)) & 1)) cnt++;
+    }
+    for(int i = 0; i < halfCols; i++) {
+        if(!((t1 >> i) & 1)) cnt++;
+    }
+    for(int i = 0; i < secHalfCols; i++) {
+        if(!((t2 >> i) & 1)) cnt++;
+    }
+    
+    printf("%d\n", cnt);
+    for(int i = 1; i <= totalRows; i++) {
+        if(!((t3 >> (i-1)) & 1)) {
+            printf("1 %d\n", i);
+        }
+    }
+    for(int i = 0; i < halfCols; i++) {
+        if(!((t1 >> i) & 1)) {
+            printf("2 %d\n", i+1);
+        }
+    }
+    for(int i = 0; i < secHalfCols; i++) {
+        if(!((t2 >> i) & 1)) {
+            printf("2 %d\n", halfCols + i + 1);
+        }
+    }
+    
+    return 0;
 }
