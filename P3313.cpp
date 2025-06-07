@@ -198,9 +198,9 @@ int main()
     }
     dfs1(1,0);
     dfs2(1,1);
-    for(int i=1;i<=n;i++){
-        cout<<i<<": "<<dfn[i]<<' '<<sz[i]<<' '<<son[i]<<' '<<fa[i]<<' '<<kind[i]<<' '<<val[i]<<endl;
-    }
+    // for(int i=1;i<=n;i++){
+    //     cout<<i<<": "<<dfn[i]<<' '<<sz[i]<<' '<<son[i]<<' '<<fa[i]<<' '<<kind[i]<<' '<<val[i]<<endl;
+    // }
     for(int i=1;i<=n;i++){
         if(root[kind[i]]==0){
             root[kind[i]]=++cnt;
