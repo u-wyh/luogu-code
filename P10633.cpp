@@ -1,65 +1,50 @@
 #include<bits/stdc++.h>
 using namespace std;
-const int MAXN = 3e5+5;
-const int MAXM = 1e6+5;
+const int MAXN = 6e4+5;
+const int MAXM = 5e4+5;
+const int MAXV = 1e5+5;
 const int INF = 1e9;
 
 int n,m,v;
 
-int cnt;
 struct node{
     int op,x,y,id;
 };
-node nums[MAXN<<1];
-node tmp[MAXN<<1];
+int cnt;
+node nums[MAXN*2+MAXM];
+node tmp[MAXN*2+MAXM];
+
+int pos[MAXN];
 
 int cntq;
 int ans[MAXN];
+int limit[MAXN];
 
-int tree[MAXM];
-
-inline int read(){
-    int x=0,f=1;
-    char ch=getchar();
-    while(ch<'0'||ch>'9'){
-        if(ch=='-')
-            f=-1;
-        ch=getchar();
-    }
-    while(ch>='0' && ch<='9')
-        x=x*10+ch-'0',ch=getchar();
-    return x*f;
-}
+int tree[MAXV+MAXN];
 
 bool cmp(node a,node b){
-    return a.x<b.x;
+    if(a.x!=b.x) return a.x<b.x;
+    return a.y<b.y;
 }
 
 inline int lowbit(int x){
     return x&-x;
 }
 
-void update(int x,int val){
-    while(x<=v){
-        tree[x]=max(tree[x],val);
+void add(int x,int val){
+    while(x<=m){
+        tree[x]+=val;
         x+=lowbit(x);
     }
 }
 
 int query(int x){
-    int ans=-INF;
+    int ans=0;
     while(x){
-        ans=max(ans,tree[x]);
+        ans+=tree[x];
         x-=lowbit(x);
     }
     return ans;
-}
-
-void clear(int x){
-    while(x<=v){
-        tree[x]=-INF;
-        x+=lowbit(x);
-    }
 }
 
 void merge(int l,int mid,int r){
@@ -68,16 +53,16 @@ void merge(int l,int mid,int r){
         while(p1+1<=mid&&tmp[p1+1].x<=tmp[p2].x){
             p1++;
             if(tmp[p1].op==1){
-                update(tmp[p1].y,tmp[p1].x+tmp[p1].y);
+                add(tmp[p1].x+tmp[p1].y,1);
             }
         }
         if(tmp[p2].op==2){
-            ans[tmp[p2].id]=min(ans[tmp[p2].id],tmp[p2].x+tmp[p2].y-query(tmp[p2].y));
+            ans[tmp[p2].id]+=(query(min(m,limit[tmp[p2].id]+tmp[p2].x+tmp[p2].y))-query(max(1,tmp[p2].x+tmp[p2].y-limit[tmp[p2].id])-1));
         }
     }
     for(int i=l;i<=p1;i++){
         if(tmp[i].op==1){
-            clear(tmp[i].y);
+            add(tmp[i].x+tmp[i].y,-1);
         }
     }
     sort(tmp+l,tmp+r+1,cmp);
@@ -87,7 +72,7 @@ void cdq(int l,int r){
     if(l==r){
         return ;
     }
-    int mid=(l+r)/2;
+    int mid=(l+r)>>1;
     cdq(l,mid);
     cdq(mid+1,r);
     merge(l,mid,r);
@@ -103,7 +88,7 @@ void to1(){
 void to2(){
     for(int i=1;i<=cnt;i++){
         tmp[i]=nums[i];
-        tmp[i].x=v-tmp[i].x;
+        tmp[i].x=n+1-tmp[i].x;
     }
     cdq(1,cnt);
 }
@@ -111,8 +96,8 @@ void to2(){
 void to3(){
     for(int i=1;i<=cnt;i++){
         tmp[i]=nums[i];
-        tmp[i].x=v-tmp[i].x;
         tmp[i].y=v-tmp[i].y;
+        tmp[i].x=n+1-tmp[i].x;
     }
     cdq(1,cnt);
 }
@@ -127,29 +112,30 @@ void to4(){
 
 int main()
 {
-    n=read(),m=read();
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    cin>>n>>m;
     for(int i=1;i<=n;i++){
-        int x,y;
-        x=read(),y=read();
-        x++,y++;
-        nums[++cnt]={1,x,y,0};
-        v=max(v,max(x,y));
+        cin>>pos[i];
+        nums[++cnt]={1,i,pos[i],0};
+        v=max(pos[i],v);
     }
     for(int i=1;i<=m;i++){
-        ++cnt;
-        nums[cnt].op=read(),nums[cnt].x=read()+1,nums[cnt].y=read()+1;
-        if(nums[cnt].op==2){
-            nums[cnt].id=++cntq;
+        string op;
+        int x,k;
+        cin>>op>>x>>k;
+        if(op[0]=='Q'){
+            nums[++cnt]={2,x,pos[x],++cntq};
+            limit[cntq]=k;
         }
-        v=max(v,max(nums[cnt].x,nums[cnt].y));
+        else{
+            nums[++cnt]={1,x,k,0};
+            pos[x]=k;
+            v=max(v,k);
+        }
     }
     v++;
-    for(int i=1;i<=v;i++){
-        tree[i]=-INF;
-    }
-    for(int i=1;i<=cntq;i++){
-        ans[i]=INF;
-    }
+    m=v+n+1;
     to1();
     to2();
     to3();
