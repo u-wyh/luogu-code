@@ -1,52 +1,86 @@
-#include <bits/stdc++.h>
-#define ll long long
-#define for1(a,b,c) for(ll a=b;a<=c;a++)
-#define for2(a,b,c) for(ll a=b;a>=c;a--)
-#define pii pair<int,int>
+#include<bits/stdc++.h>
 using namespace std;
-const ll N=2e5+10, M=998244353;
+const int MAXN = 2e5+5;
 
-vector<int> e[N];
-ll a[N];
+int n;
+int maxmex[MAXN];
 
-void dfs(int x,int fa){
-    a[x]=0;
-    priority_queue<int> Q;
-    for (auto v:e[x])
-    {
-        if(v==fa)continue;
-        dfs(v,x);
-        Q.push(-a[v]);
+int head[MAXN];
+int nxt[MAXN<<1];
+int to[MAXN<<1];
+int cnt=1;
+
+struct cmp{
+    bool operator()(int a,int b){
+        return a>b;//小根堆
     }
-    while (!Q.empty())
-    {
-        int p=-Q.top();Q.pop();
-        if(p>=a[x]){
-            a[x]++;
+};
+
+inline int read(){
+    int x=0,f=1;
+    char ch=getchar();
+    while(ch<'0'||ch>'9'){
+        if(ch=='-')
+            f=-1;
+        ch=getchar();
+    }
+    while(ch>='0' && ch<='9')
+        x=x*10+ch-'0',ch=getchar();
+    return x*f;
+}
+
+inline void addedge(int u,int v){
+    nxt[cnt]=head[u];
+    to[cnt]=v;
+    head[u]=cnt++;
+}
+
+void prepare(){
+    cnt=1;
+    for(int i=1;i<=n;i++){
+        head[i]=0;
+    }
+}
+
+void dfs(int u,int fa){
+    maxmex[u]=0;
+    priority_queue<int,vector<int>,cmp>heap;
+    for(int i=head[u];i;i=nxt[i]){
+        int v=to[i];
+        if(v==fa){
+            continue;
+        }
+        dfs(v,u);
+        heap.push(maxmex[v]);
+    }
+    while(!heap.empty()){
+        int v=heap.top();
+        heap.pop();
+        if(v>=maxmex[u]){
+            maxmex[u]++;
         }
     }
 }
 
-void solve(){
-    int n;
-    cin>>n;
-    for1(i,1,n)e[i].clear();
-    for1(i,2,n){
-        int u,v;
-        cin>>u>>v;
-        e[u].push_back(v);
-        e[v].push_back(u);
-    }
-    dfs(1,0);
-    ll ans=0;
-    for1(i,1,n)ans+=a[i];
-    cout<<ans<<endl;
-}
-
 int main()
 {
-    int _=1;
-    cin>>_;
-    while(_--)solve();
+    int T;
+    cin>>T;
+    while(T--){
+        n=read();
+        prepare();
+        for(int i=1;i<n;i++){
+            int u,v;
+            u=read(),v=read();
+            addedge(u,v);
+            addedge(v,u);
+        }
+        dfs(1,0);
+        long long ans=0;
+        for(int i=1;i<=n;i++){
+            ans+=maxmex[i];
+        }
+        cout<<ans<<endl;
+    }
     return 0;
 }
