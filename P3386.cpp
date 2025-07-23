@@ -1,61 +1,121 @@
 #include<bits/stdc++.h>
 using namespace std;
-const int MAXN = 505;
-const int MAXM = 5e4+5;
+#define int long long
+const int MAXN = 1005;
+const int MAXM = 120005;
+const int INF = 1e10;
 
-int n,m,e;
+int n,m,s,t;
+int e;
 
-bool vis[MAXN];//标记在这一轮中右部节点是否被访问过
-int match[MAXN];//记录右部节点的匹配对象（左部节点编号）
+int dep[MAXN];//记录深度数组
+int iter[MAXN];//当前弧数组 记录这个节点有效访问的第一条边的编号
 
-//只记录从左边到右边的路径
+//这里编号从2开始 为了正反边编号寻找方便
+int cnt=2;
 int head[MAXN];
 int nxt[MAXM];
 int to[MAXM];
-int cnt=1;
+int now[MAXM];//表示现在的流量
+int cap[MAXM];//表示流量限制
 
-inline void addedge(int u,int v){
+void addedge(int u,int v,int w){
     nxt[cnt]=head[u];
     to[cnt]=v;
+    cap[cnt]=w;
     head[u]=cnt++;
+
+    nxt[cnt]=head[v];
+    to[cnt]=u;
+    cap[cnt]=0;
+    head[v]=cnt++;
 }
 
-// DFS寻找增广路径   其实就是为u找到一个匹配
-bool dfs(int u){
-    for(int i=head[u];i;i=nxt[i]){
-        int v=to[i];
-        if(vis[v]){
-            continue;
-        }
-        // 标记v为已访问    这样的话接下来的点就不会访问他
-        vis[v]=true;
-        // 如果v未被匹配，或者已匹配但可以找到新匹配
-        if(match[v]==0||dfs(match[v])){
-            match[v]=u;
-            return true;
+//BFS构建分层图，并判断是否存在增广路径
+bool bfs(){
+    for(int i=1;i<=n;i++){
+        dep[i]=-1;
+    }
+    queue<int>q;
+    dep[s]=0;
+    q.push(s);
+    while(!q.empty()){
+        int u=q.front();
+        q.pop();
+        for(int i=head[u];i;i=nxt[i]){
+            int v=to[i];
+            int w=cap[i];
+            int k=now[i];
+            if(dep[v]<0&&(k<w)){
+                dep[v]=dep[u]+1;
+                q.push(v);
+            }
         }
     }
-    return false;
+    return dep[t]>=0;// 如果汇点未被访问到，说明无增广路径
 }
 
-int main()
+// DFS寻找增广路径（多路增广）
+//多路增广的含义是来到了一个节点 不仅仅是只去一条边增广  而是去多条边一起增广
+int dfs(int u,int f){
+    //表示当前来到了u节点 有f的流量可供使用  f就是目前这条路最多可以消耗掉的流量
+    if(u==t){
+        return f;
+    }
+    int flow=0;
+    for(int &i=iter[u];i;i=nxt[i]){
+        //注意这里是引用  iter会随着i发生变化
+        int v=to[i];
+        int w=cap[i];
+        int k=now[i];
+        if(dep[u]+1==dep[v]&&k<w){
+            int d=dfs(v,min(f,w-k));
+            if(d>0){
+                now[i]+=d;
+                now[i^1]-=d;//更新反向边
+                flow+=d;
+                f-=d;
+                if(f==0){
+                    break;
+                }
+            }
+        }
+    }
+    return flow;
+}
+
+// Dinic算法主函数
+int maxflow(){
+    int flow=0;
+    while(bfs()){
+        //当前弧全部初始化为最初值
+        for(int i=1;i<=n;i++){
+            iter[i]=head[i];
+        }
+        int maxflow;
+        while((maxflow=dfs(s,INF))>0){
+            flow+=maxflow;
+        }
+    }
+    return flow;
+}
+
+signed main()
 {
     cin>>n>>m>>e;
+    s=n+m+1,t=n+m+2;
+    for(int i=1;i<=n;i++){
+        addedge(s,i,1);
+    }
+    for(int i=1;i<=m;i++){
+        addedge(i+n,t,1);
+    }
     for(int i=1;i<=e;i++){
         int u,v;
         cin>>u>>v;
-        addedge(u,v);
+        addedge(u,v+n,1);
     }
-    int ans=0;
-    for(int u=1;u<=n;u++){
-        // 重置访问标记
-        for(int i=1;i<=m;i++){
-            vis[i]=false;
-        }
-        if(dfs(u)){
-            ans++;// 找到匹配则计数
-        }
-    }
-    cout<<ans<<endl;
+    n=n+m+2;
+    cout<<maxflow()<<endl;
     return 0;
 }
