@@ -1,48 +1,77 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
 using namespace std;
-const int MAXN = 2e5+5;
 
+const int MAXN = 200005;
 int n;
-int dfn[MAXN];
-int val[MAXN];
+int dfs0[MAXN], bfs0[MAXN];
+int rank_bfn[MAXN];
+int d[MAXN], pos[MAXN];
+int flag[MAXN];
+int diff[MAXN];
 
-inline int read(){
-    int x=0,f=1;
-    char ch=getchar();
-    while(ch<'0'||ch>'9'){
-        if(ch=='-')
-            f=-1;
-        ch=getchar();
+int main() {
+    scanf("%d", &n);
+    for (int i = 1; i <= n; i++) {
+        scanf("%d", &dfs0[i]);
     }
-    while(ch>='0' && ch<='9')
-        x=x*10+ch-'0',ch=getchar();
-    return x*f;
-}
+    for (int i = 1; i <= n; i++) {
+        scanf("%d", &bfs0[i]);
+    }
+    
+    for (int i = 1; i <= n; i++) {
+        rank_bfn[bfs0[i]] = i;
+    }
+    
+    for (int i = 1; i <= n; i++) {
+        d[i] = rank_bfn[dfs0[i]];
+    }
+    
+    for (int i = 1; i <= n; i++) {
+        pos[d[i]] = i;
+    }
 
-int main()
-{
-    n=read();
     for(int i=1;i<=n;i++){
-        int u=read();
-        dfn[u]=i;
+        cout<<d[i]<<' ';
     }
-    for(int i=1;i<=n;i++){
-        int u=read();
-        val[i]=dfn[u];
-    }
-    // for(int i=1;i<=n;i++){
-    //     cout<<val[i]<<' ';
-    // }
-    // cout<<endl;
-    double ans=2;
-    for(int i=2;i<n;i++){
-        if(val[i]+1==val[i+1]){
-            ans+=0.5;
-        }
-        else if(val[i]+1>val[i+1]){
-            ans+=1;
+    cout<<endl;
+    
+    flag[1] = 1;
+    for (int i = 2; i < n; i++) {
+        if (pos[i] > pos[i+1]) {
+            flag[i] = 1;
         }
     }
-    printf("%.3lf",ans);
+    
+    for (int k = 1; k < n; k++) {
+        if (d[k] + 1 < d[k+1]) {
+            int l = d[k];
+            int r = d[k+1] - 1;
+            diff[l]++;
+            diff[r+1]--;
+        }
+    }
+    
+    int s = 0;
+    for (int i = 1; i <= n; i++) {
+        s += diff[i];
+        if (flag[i] != 1 && s > 0) {
+            flag[i] = -1;
+        }
+    }
+    
+    double ans = 1.0;
+    for (int i = 1; i < n; i++) {
+        if (flag[i] == 1) {
+            ans += 1.0;
+        } else if (flag[i] == 0) {
+            ans += 0.5;
+        }
+    }
+    
+    printf("%.3lf\n", ans);
+    
     return 0;
 }
