@@ -45,8 +45,7 @@ void up(int i){
         now[i]=1;
         len[i]=(len[i<<1]*len[i<<1|1])/gcd(len[i<<1],len[i<<1|1]);
         for(int p=1;p<=len[i];p++){
-            tree[i][p]+=tree[i<<1][(p-2+now[i<<1])%len[i<<1]+1];
-            tree[i][p]+=tree[i<<1|1][(p-2+now[i<<1|1])%len[i<<1|1]+1];
+            tree[i][p]=tree[i<<1][(p-2+now[i<<1])%len[i<<1]+1]+tree[i<<1|1][(p-2+now[i<<1|1])%len[i<<1|1]+1];
         }
     }
 }
@@ -58,7 +57,7 @@ void build(int l,int r,int i){
             now[i]=1;
             tree[i][1]=val[l];
             for(int p=2;p<MAXH;p++){
-                int val=tree[i][p-1]*tree[i][p-1]%mod;
+                int val=(tree[i][p-1]*tree[i][p-1])%mod;
                 if(val!=tree[i][1]){
                     tree[i][p]=val;
                 }
@@ -82,7 +81,7 @@ void build(int l,int r,int i){
 
 void lazy(int i,int t){
     now[i]=(now[i]+t-1)%len[i]+1;
-    tag[i]+=t;
+    tag[i]=(tag[i]+t)%len[i];
 }
 
 void down(int i){
@@ -100,13 +99,13 @@ void update(int jobl,int jobr,int l,int r,int i){
         }
         else{
             if(l==r){
-                val[l]=val[l]*val[l]%mod;
+                val[l]=(val[l]*val[l])%mod;
                 if(cycle[val[l]]){
                     cyc[i]=1;
                     now[i]=1;
                     tree[i][1]=val[l];
                     for(int p=2;p<MAXH;p++){
-                        int val=tree[i][p-1]*tree[i][p-1]%mod;
+                        int val=(tree[i][p-1]*tree[i][p-1])%mod;
                         if(val!=tree[i][1]){
                             tree[i][p]=val;
                         }
@@ -170,8 +169,24 @@ int query(int jobl,int jobr,int l,int r,int i){
     }
 }
 
+int power(int a,int b){
+    int ans=1;
+    while(b){
+        if(b&1){
+            ans=(ans*a)%mod;
+        }
+        a=(a*a)%mod;
+        b>>=1;
+    }
+    cout<<' '<<ans<<endl;
+    return ans;
+}
+
 int main()
 {
+    // mod=233;
+    // cout<<(power(135,4)+power(76,32)+power(183,32)+power(134,32)+power(118,8))<<endl;
+
     n=read(),m=read(),mod=read();
 
     // 哪些数字已经在循环节中了
@@ -210,3 +225,17 @@ int main()
     }
     return 0;
 }
+/*
+5 10 233
+135 76 183 134 118
+1 2 5
+1 4 4
+2 2 4
+2 2 3
+1 2 5
+1 1 3
+1 1 5
+1 2 4
+2 1 5
+1 4 4
+*/
