@@ -1,9 +1,11 @@
 #include<bits/stdc++.h>
 using namespace std;
-const int MAXN = 105;
+#define int long long
+const int MAXN = 5e4+5;
+const int MAXM = 125005;
 const int MAXV = MAXN+10;
-const int MAXE = MAXN*MAXN*2;
-const int INF = 1e9;
+const int MAXE = 6*MAXM;
+const int INF = 1e18;
 
 int n,m,s,t;
 int ss,tt;// 附加源点、汇点
@@ -81,6 +83,9 @@ int dfs(int u,int t,int f){
             }
         }
     }
+    if(flow==0){
+        dep[u]=-1;
+    }
     return flow;
 }
 
@@ -111,51 +116,55 @@ inline int read(){
     return x*f;
 }
 
-int main()
+signed main()
 {
-    n=read();
-    s=n+1,t=s+1,ss=t+1,tt=ss+1;
-    for(int i=1;i<=n;i++){
-        int m=read();
-        for(int j=1;j<=m;j++){
-            int u=read();
-            addedge(i,u,INF);
-            in[i]--;
-            in[u]++;
-        }
+    n=read(),m=read(),s=read(),t=read();
+    ss=n+1,tt=ss+1;
+    for(int i=1;i<=m;i++){
+        int u,v,l,r;
+        u=read(),v=read(),l=read(),r=read();
+        addedge(u,v,r-l);
+        in[u]-=l;
+        in[v]+=l;
     }
-    for(int i=1;i<=n;i++){
-        addedge(s,i,INF);
-    }
-    for(int i=1;i<=n;i++){
-        addedge(i,t,INF);
-    }
-    ts_id=cnt;
-    addedge(t,s,INF);   
 
-    for(int i=1;i<=t;i++){
+    // 记录添加t->s边前的cnt  添加t->s边，容量INF
+    ts_id=cnt;
+    addedge(t,s,INF);
+
+    // 建立所有的附加边
+    int all=0;
+    for(int i=1;i<=n;i++){
         if(in[i]>0){
             addedge(ss,i,in[i]);
+            all+=in[i];
         }
         else if(in[i]<0){
             addedge(i,tt,-in[i]);
         }
     }
 
-    int flow=maxflow(ss,tt);
-    int f0=now[ts_id];
+    int flow1=maxflow(ss,tt);
+    if(flow1!=all){
+        printf("please go home to sleep");
+    }
+    else{
+        // 记录可行流值
+        int f0=now[ts_id];
 
-    cap[ts_id] = 0;
-    cap[ts_id ^ 1] = 0;
-    now[ts_id] = 0;
-    now[ts_id ^ 1] = 0;
+        // 删除t->s边：将容量和当前流量设为0
+        // 附加边不需要改变 因为他们的剩余流量一定是0
+        cap[ts_id] = 0;
+        cap[ts_id ^ 1] = 0;
+        now[ts_id] = 0;
+        now[ts_id ^ 1] = 0;
 
-    // 如果求的是最小流 那么就是跑一下退流  用可行流减去退流即可
-    // 在残余网络上从t到s跑最大流（退流）
-    int flow_back = maxflow(t, s);
+        // 在残余网络上从t到s跑最大流（退流）
+        int flow_back = maxflow(t, s);
             
-    // 最小流 = 可行流 - 退流
-    printf("%d", f0 - flow_back);
-         
+        // 最小流 = 可行流 - 退流
+        printf("%lld\n", f0 - flow_back);
+        
+    }
     return 0;
 }

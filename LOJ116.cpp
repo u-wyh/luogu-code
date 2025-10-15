@@ -1,8 +1,9 @@
 #include<bits/stdc++.h>
 using namespace std;
-const int MAXN = 105;
-const int MAXV = MAXN+10;
-const int MAXE = MAXN*MAXN*2;
+const int MAXN = 205;
+const int MAXM = 1e4+5;
+const int MAXV = MAXN;
+const int MAXE = 3*MAXM;
 const int INF = 1e9;
 
 int n,m,s,t;
@@ -113,49 +114,51 @@ inline int read(){
 
 int main()
 {
-    n=read();
-    s=n+1,t=s+1,ss=t+1,tt=ss+1;
-    for(int i=1;i<=n;i++){
-        int m=read();
-        for(int j=1;j<=m;j++){
-            int u=read();
-            addedge(i,u,INF);
-            in[i]--;
-            in[u]++;
-        }
+    n=read(),m=read(),s=read(),t=read();
+    ss=n+1,tt=ss+1;
+    for(int i=1;i<=m;i++){
+        int u,v,l,r;
+        u=read(),v=read(),l=read(),r=read();
+        addedge(u,v,r-l);
+        in[u]-=l;
+        in[v]+=l;
     }
-    for(int i=1;i<=n;i++){
-        addedge(s,i,INF);
-    }
-    for(int i=1;i<=n;i++){
-        addedge(i,t,INF);
-    }
-    ts_id=cnt;
-    addedge(t,s,INF);   
 
-    for(int i=1;i<=t;i++){
+    // 记录添加t->s边前的cnt  添加t->s边，容量INF
+    ts_id=cnt;
+    addedge(t,s,INF);
+
+    // 建立所有的附加边
+    int all=0;
+    for(int i=1;i<=n;i++){
         if(in[i]>0){
             addedge(ss,i,in[i]);
+            all+=in[i];
         }
         else if(in[i]<0){
             addedge(i,tt,-in[i]);
         }
     }
 
-    int flow=maxflow(ss,tt);
-    int f0=now[ts_id];
+    int flow1=maxflow(ss,tt);
+    if(flow1!=all){
+        printf("please go home to sleep");
+    }
+    else{
+        // 记录可行流值
+        int f0=now[ts_id];
 
-    cap[ts_id] = 0;
-    cap[ts_id ^ 1] = 0;
-    now[ts_id] = 0;
-    now[ts_id ^ 1] = 0;
+        // 删除t->s边：将容量和当前流量设为0
+        // 附加边不需要改变 因为他们的剩余流量一定是0
+        cap[ts_id] = 0;
+        cap[ts_id ^ 1] = 0;
+        now[ts_id] = 0;
+        now[ts_id ^ 1] = 0;
 
-    // 如果求的是最小流 那么就是跑一下退流  用可行流减去退流即可
-    // 在残余网络上从t到s跑最大流（退流）
-    int flow_back = maxflow(t, s);
-            
-    // 最小流 = 可行流 - 退流
-    printf("%d", f0 - flow_back);
+        // 在残余网络上从s到t跑最大流
+        int flow2 = maxflow(s, t);
          
+        printf("%d\n", f0 + flow2);
+    }
     return 0;
 }
