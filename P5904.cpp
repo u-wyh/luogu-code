@@ -3,6 +3,7 @@ using namespace std;
 const int MAXN = 1e5+5;
 
 int n;
+
 int head[MAXN];
 int nxt[MAXN<<1];
 int to[MAXN<<1];
